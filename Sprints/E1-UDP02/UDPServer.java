@@ -7,13 +7,14 @@ import java.util.Map;
 
 public class UDPServer {
 
+    static Map<Integer, String> dicionario = new HashMap<>();
+    static List<String> historico = new ArrayList<>();
+
     public static void main(String args[]) {
         DatagramSocket aSocket = null;
 
         // Estado do Servidor
         int L = 0;
-        Map<Integer, String> dicionario = new HashMap<>();
-        List<String> historico = new ArrayList<>();
 
         try {
             aSocket = new DatagramSocket(6789);
@@ -34,40 +35,23 @@ public class UDPServer {
                         int N = Integer.parseInt(partes[0].trim());
                         String texto = partes[1].trim();
 
-                        if (N == L + 1) {
-                            List<String> entreguesNestePasso = new ArrayList<>();
+                        // 2. Chama a nossa função para processar a mensagem e devolve o novo L
+                        int novoL = processDeliveredMessages(L, N, texto);
 
-                            // 1. Entrega a mensagem atual
-                            L = N;
-                            entreguesNestePasso.add(texto);
-                            historico.add(texto);
-
-                            // 2. Verifica se tem as mensagens seguintes guardadas no dicionário
-                            while (dicionario.containsKey(L + 1)) {
-                                L++;
-                                String textoGuardado = dicionario.get(L);
-                                entreguesNestePasso.add(textoGuardado);
-                                historico.add(textoGuardado);
-                                dicionario.remove(L);
-                            }
-
-                            System.out.println("Mensagens entregues neste passo: " + entreguesNestePasso);
-
-                            // Responde ao cliente
-                            DatagramPacket reply = new DatagramPacket(request.getData(), request.getLength(), request.getAddress(), request.getPort());
-                            aSocket.send(reply);
-
-                        } else if (N > L + 1) {
-                            // Guarda no dicionário se vier adiantada
-                            dicionario.put(N, texto);
-                            System.out.println("Dicionario temporario: " + dicionario);
-
+                        // 3. Envia a resposta adequada consoante o que aconteceu
+                        if (novoL == L) {
+                            // Se o L não mudou, significa que a mensagem chegou adiantada ou atrasada
                             String respostaErro = "waitingfor," + (L + 1);
                             byte[] errBytes = respostaErro.getBytes();
                             DatagramPacket reply = new DatagramPacket(errBytes, errBytes.length, request.getAddress(), request.getPort());
                             aSocket.send(reply);
                         } else {
-                            System.out.println("Mensagem atrasada/duplicada descartada.");
+                            // Se a mensagem foi processada com sucesso (L avançou)
+                            L = novoL; // Atualiza o L principal
+
+                            // Responde com echo
+                            DatagramPacket reply = new DatagramPacket(request.getData(), request.getLength(), request.getAddress(), request.getPort());
+                            aSocket.send(reply);
                         }
 
                         // Prints fixos em todos os passos
@@ -88,5 +72,41 @@ public class UDPServer {
         } finally {
             if (aSocket != null) aSocket.close();
         }
+    }
+
+
+    public static int processDeliveredMessages(int nLastMessageInOrder, int nCurrentMessage, String currentMessage) {
+        List<String> entreguesNestePasso = new ArrayList<>();
+
+        // Cenário A: Mensagem em ordem (N == L + 1)
+        if (nCurrentMessage == nLastMessageInOrder + 1) {
+
+            // 1. Entrega a mensagem atual
+            nLastMessageInOrder++;
+            entreguesNestePasso.add(currentMessage);
+            historico.add(currentMessage);
+
+            // 2. Verifica se tem as mensagens seguintes guardadas no dicionário (cascata)
+            while (dicionario.containsKey(nLastMessageInOrder + 1)) {
+                nLastMessageInOrder++;
+                String textoGuardado = dicionario.remove(nLastMessageInOrder); // Tira do dicionário
+                entreguesNestePasso.add(textoGuardado);
+                historico.add(textoGuardado); // Coloca no histórico
+            }
+
+            System.out.println("Mensagens entregues neste passo: " + entreguesNestePasso);
+        }
+        // Cenário B: Mensagem adiantada (N > L + 1)
+        else if (nCurrentMessage > nLastMessageInOrder + 1) {
+            dicionario.put(nCurrentMessage, currentMessage);
+            System.out.println("Dicionario temporario: " + dicionario);
+        }
+        // Cenário C: Mensagem atrasada ou duplicada
+        else {
+            System.out.println("Mensagem atrasada/duplicada descartada.");
+        }
+
+        // Devolve o L (atualizado ou não) para o main saber como responder
+        return nLastMessageInOrder;
     }
 }
