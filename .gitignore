@@ -1,1 +1,5 @@
 .clawdea/REPO_STATE.md
+*.class
+**/*.class
+out/
+bin/
