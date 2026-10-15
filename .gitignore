@@ -1,1 +1,13 @@
 .clawdea/REPO_STATE.md
+*.class
+**/*.class
+out/
+**/out/
+bin/
+**/bin/
+*.zip
+kubo/
+ipfs.exe
+*.txt
+*.cmd
+*.bat
