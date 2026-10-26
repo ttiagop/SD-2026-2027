@@ -2,12 +2,4 @@
 *.class
 **/*.class
 out/
-**/out/
 bin/
-**/bin/
-*.zip
-kubo/
-ipfs.exe
-*.txt
-*.cmd
-*.bat
