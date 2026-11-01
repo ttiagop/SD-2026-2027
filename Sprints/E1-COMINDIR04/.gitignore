@@ -1,0 +1,6 @@
+bin/
+ensaios/
+__pycache__/
+# Publicar apenas o relatório agregado; dados brutos e registos ficam locais.
+resultados/*/*
+!resultados/*/RESULTADOS.md
