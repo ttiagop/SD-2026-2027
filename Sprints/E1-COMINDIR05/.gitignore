@@ -1,0 +1,5 @@
+bin/
+ensaios/
+# Publicar apenas o relatório agregado; dados brutos e registos ficam locais.
+resultados/*/*
+!resultados/*/RESULTADOS.md
