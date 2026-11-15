@@ -1,1 +1,13 @@
 .clawdea/REPO_STATE.md
+*.class
+**/*.class
+out/
+bin/
+
+# Credenciais e chaves locais (em qualquer pasta).
+.env
+.env.*
+master.key
+master.key.*
+token.txt
+discord-token.txt
