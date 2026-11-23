@@ -1,0 +1,8 @@
+/target/
+.env
+.env.*
+master.key
+master.key.*
+registos.log
+eventos-lider.txt
+selados/
